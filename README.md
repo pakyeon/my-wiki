@@ -1,4 +1,6 @@
-# My Wiki
+[English](./README.md) | [한국어](./README-ko.md)
+
+## My Wiki
 
 My Wiki is a Next.js app that turns uploaded source files into generated wiki pages and answers chat questions only from those pages.
 
