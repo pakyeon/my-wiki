@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { WikiChatPanel } from "@/components/wiki-chat-panel";
 import { listWikiPages, readWikiPage } from "@/lib/storage/fs-store";
 
 export default async function WikiDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -37,6 +38,7 @@ export default async function WikiDetailPage({ params }: { params: Promise<{ slu
           )}
         </div>
       </section>
+      <WikiChatPanel />
     </main>
   );
 }
