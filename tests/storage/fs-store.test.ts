@@ -70,6 +70,19 @@ describe("saveWikiPages", () => {
     ).rejects.toThrow();
 
     expect(existsSync(path.join(dataDir, "wiki", "stale.json"))).toBe(true);
-    await expect(readFile(path.join(dataDir, "wiki", "fresh-page.json"), "utf8")).resolves.toContain("Fresh Page");
+    expect(existsSync(path.join(dataDir, "wiki", "fresh-page.json"))).toBe(false);
+  });
+
+  it("does not delete existing wiki files when called with no pages", async () => {
+    const dataDir = await mkdtemp(path.join(os.tmpdir(), "llm-wiki-"));
+    await mkdir(path.join(dataDir, "wiki"), { recursive: true });
+    await writeFile(path.join(dataDir, "wiki", "stale.json"), JSON.stringify({ stale: true }), "utf8");
+
+    vi.stubEnv("STUDY_WIKI_DATA_DIR", dataDir);
+    const { saveWikiPages } = await import("@/lib/storage/fs-store");
+
+    await saveWikiPages([]);
+
+    expect(existsSync(path.join(dataDir, "wiki", "stale.json"))).toBe(true);
   });
 });

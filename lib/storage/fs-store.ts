@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { mkdir, readFile, readdir, unlink, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { WikiPage } from "@/lib/types";
 
@@ -11,20 +11,36 @@ export async function ensureDataDirs() {
 }
 
 export async function saveWikiPages(pages: WikiPage[]) {
+  if (pages.length === 0) {
+    return;
+  }
   await ensureDataDirs();
   const wikiDir = path.join(DATA_DIR, "wiki");
+  const stagingDir = path.join(DATA_DIR, `wiki.tmp-${process.pid}-${Date.now()}`);
+  const backupDir = path.join(DATA_DIR, `wiki.backup-${process.pid}-${Date.now()}`);
+
+  await mkdir(stagingDir, { recursive: true });
   await Promise.all(
     pages.map((page) =>
-      writeFile(path.join(wikiDir, `${page.slug}.json`), JSON.stringify(page, null, 2), "utf8"),
+      writeFile(path.join(stagingDir, `${page.slug}.json`), JSON.stringify(page, null, 2), "utf8"),
     ),
   );
-  const keepNames = new Set(pages.map((page) => `${page.slug}.json`));
-  const names = await readdir(wikiDir);
-  await Promise.all(
-    names
-      .filter((name) => name.endsWith(".json") && !keepNames.has(name))
-      .map((name) => unlink(path.join(wikiDir, name))),
-  );
+
+  try {
+    if (existsSync(wikiDir)) {
+      await rename(wikiDir, backupDir);
+    }
+    await rename(stagingDir, wikiDir);
+    if (existsSync(backupDir)) {
+      await rm(backupDir, { recursive: true, force: true });
+    }
+  } catch (error) {
+    if (existsSync(backupDir) && !existsSync(wikiDir)) {
+      await rename(backupDir, wikiDir).catch(() => {});
+    }
+    await rm(stagingDir, { recursive: true, force: true }).catch(() => {});
+    throw error;
+  }
 }
 
 export async function readWikiPage(slug: string) {
