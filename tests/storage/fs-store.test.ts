@@ -1,24 +1,38 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { existsSync } from "node:fs";
-import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
-import os from "node:os";
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+const createdDataDirs = new Set<string>();
+
+async function makeTestDataDir() {
+  const dataRoot = path.join(process.cwd(), "data");
+  await mkdir(dataRoot, { recursive: true });
+  const dataDir = await mkdtemp(path.join(dataRoot, "test-"));
+  createdDataDirs.add(dataDir);
+  return {
+    dataDir,
+    subdir: path.basename(dataDir),
+  };
+}
+
 describe("saveWikiPages", () => {
-  afterEach(() => {
+  afterEach(async () => {
     vi.unstubAllEnvs();
     vi.resetModules();
+    await Promise.all([...createdDataDirs].map((dataDir) => rm(dataDir, { recursive: true, force: true })));
+    createdDataDirs.clear();
   });
 
   it("replaces stale wiki json files without touching uploads", async () => {
-    const dataDir = await mkdtemp(path.join(os.tmpdir(), "llm-wiki-"));
+    const { dataDir, subdir } = await makeTestDataDir();
     await mkdir(path.join(dataDir, "wiki"), { recursive: true });
     await mkdir(path.join(dataDir, "uploads"), { recursive: true });
 
     await writeFile(path.join(dataDir, "wiki", "stale.json"), JSON.stringify({ stale: true }), "utf8");
     await writeFile(path.join(dataDir, "uploads", "keep.txt"), "keep", "utf8");
 
-    vi.stubEnv("STUDY_WIKI_DATA_DIR", dataDir);
+    vi.stubEnv("STUDY_WIKI_DATA_DIR", subdir);
     const { saveWikiPages } = await import("@/lib/storage/fs-store");
 
     await saveWikiPages([
@@ -39,11 +53,11 @@ describe("saveWikiPages", () => {
   });
 
   it("keeps stale wiki files if a later page write fails", async () => {
-    const dataDir = await mkdtemp(path.join(os.tmpdir(), "llm-wiki-"));
+    const { dataDir, subdir } = await makeTestDataDir();
     await mkdir(path.join(dataDir, "wiki"), { recursive: true });
     await writeFile(path.join(dataDir, "wiki", "stale.json"), JSON.stringify({ stale: true }), "utf8");
 
-    vi.stubEnv("STUDY_WIKI_DATA_DIR", dataDir);
+    vi.stubEnv("STUDY_WIKI_DATA_DIR", subdir);
     const { saveWikiPages } = await import("@/lib/storage/fs-store");
 
     await expect(
@@ -74,27 +88,36 @@ describe("saveWikiPages", () => {
   });
 
   it("does not delete existing wiki files when called with no pages", async () => {
-    const dataDir = await mkdtemp(path.join(os.tmpdir(), "llm-wiki-"));
+    const { dataDir, subdir } = await makeTestDataDir();
     await mkdir(path.join(dataDir, "wiki"), { recursive: true });
     await writeFile(path.join(dataDir, "wiki", "stale.json"), JSON.stringify({ stale: true }), "utf8");
 
-    vi.stubEnv("STUDY_WIKI_DATA_DIR", dataDir);
+    vi.stubEnv("STUDY_WIKI_DATA_DIR", subdir);
     const { saveWikiPages } = await import("@/lib/storage/fs-store");
 
     await saveWikiPages([]);
 
     expect(existsSync(path.join(dataDir, "wiki", "stale.json"))).toBe(true);
   });
+
+  it("rejects absolute storage overrides outside the data directory", async () => {
+    vi.stubEnv("STUDY_WIKI_DATA_DIR", "/tmp/outside");
+    const { ensureDataDirs } = await import("@/lib/storage/fs-store");
+
+    await expect(ensureDataDirs()).rejects.toThrow("STUDY_WIKI_DATA_DIR must be a relative path under ./data");
+  });
 });
 
 describe("listWikiPages", () => {
-  afterEach(() => {
+  afterEach(async () => {
     vi.unstubAllEnvs();
     vi.resetModules();
+    await Promise.all([...createdDataDirs].map((dataDir) => rm(dataDir, { recursive: true, force: true })));
+    createdDataDirs.clear();
   });
 
   it("skips malformed wiki json files", async () => {
-    const dataDir = await mkdtemp(path.join(os.tmpdir(), "llm-wiki-"));
+    const { dataDir, subdir } = await makeTestDataDir();
     await mkdir(path.join(dataDir, "wiki"), { recursive: true });
     await writeFile(
       path.join(dataDir, "wiki", "valid.json"),
@@ -111,7 +134,7 @@ describe("listWikiPages", () => {
     );
     await writeFile(path.join(dataDir, "wiki", "broken.json"), "{not-json", "utf8");
 
-    vi.stubEnv("STUDY_WIKI_DATA_DIR", dataDir);
+    vi.stubEnv("STUDY_WIKI_DATA_DIR", subdir);
     const { listWikiPages, readWikiPage } = await import("@/lib/storage/fs-store");
 
     await expect(readWikiPage("broken")).resolves.toBeNull();

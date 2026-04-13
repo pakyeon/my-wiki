@@ -57,6 +57,7 @@ Set these values in `my-wiki/.env.local`:
 - `CHAT_MODEL_BASE_URL`: OpenAI-compatible chat completion endpoint, such as `http://127.0.0.1:8080/v1`.
 - `CHAT_MODEL_API_KEY`: Any placeholder string accepted by your local server. `local` is fine for `llama.cpp`.
 - `CHAT_MODEL_NAME`: The model name sent to the endpoint. Use the name expected by your server or a local alias such as `gemma-4-e4-b-it-q4`.
+- `STUDY_WIKI_DATA_DIR`: Optional relative subdirectory under `./data` for local storage isolation, such as `demo-run-1` or `test/session-a`.
 
 ## Product Guardrails
 
@@ -80,4 +81,4 @@ npm run lint
 npm run build
 ```
 
-If `npm run build` emits the known Turbopack tracing warning, treat it as expected for this task unless it blocks the build.
+The app stores generated wiki files under `./data` by default. If you set `STUDY_WIKI_DATA_DIR`, keep it relative to `./data` rather than using an absolute filesystem path.
