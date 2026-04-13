@@ -11,11 +11,18 @@ export async function POST(request: Request) {
   if (files.length === 0) {
     return NextResponse.json({ pages: [] });
   }
-  const sources = await Promise.all(
-    files.map(async (file) =>
-      normalizeSource({ fileName: file.name, mimeType: file.type, text: await extractText(file) }),
-    ),
+  const sourceResults = await Promise.allSettled(
+    files.map(async (file) => {
+      const text = await extractText(file);
+      return normalizeSource({ fileName: file.name, mimeType: file.type, text });
+    }),
   );
+  const sources = sourceResults.flatMap((result) =>
+    result.status === "fulfilled" ? [result.value] : [],
+  );
+  if (sources.length === 0) {
+    return NextResponse.json({ pages: [] });
+  }
   const pages = linkWikiPages(generateWikiPages(sources));
   await saveWikiPages(pages);
   return NextResponse.json({ pages });

@@ -86,3 +86,45 @@ describe("saveWikiPages", () => {
     expect(existsSync(path.join(dataDir, "wiki", "stale.json"))).toBe(true);
   });
 });
+
+describe("listWikiPages", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it("skips malformed wiki json files", async () => {
+    const dataDir = await mkdtemp(path.join(os.tmpdir(), "llm-wiki-"));
+    await mkdir(path.join(dataDir, "wiki"), { recursive: true });
+    await writeFile(
+      path.join(dataDir, "wiki", "valid.json"),
+      JSON.stringify({
+        slug: "valid",
+        title: "Valid",
+        summary: "summary",
+        body: "body",
+        keywords: ["valid"],
+        sourceIds: ["source-1"],
+        links: [],
+      }),
+      "utf8",
+    );
+    await writeFile(path.join(dataDir, "wiki", "broken.json"), "{not-json", "utf8");
+
+    vi.stubEnv("STUDY_WIKI_DATA_DIR", dataDir);
+    const { listWikiPages, readWikiPage } = await import("@/lib/storage/fs-store");
+
+    await expect(readWikiPage("broken")).resolves.toBeNull();
+    await expect(listWikiPages()).resolves.toEqual([
+      {
+        slug: "valid",
+        title: "Valid",
+        summary: "summary",
+        body: "body",
+        keywords: ["valid"],
+        sourceIds: ["source-1"],
+        links: [],
+      },
+    ]);
+  });
+});

@@ -60,7 +60,11 @@ export async function saveWikiPages(pages: WikiPage[]) {
 export async function readWikiPage(slug: string) {
   const filePath = path.join(DATA_DIR, "wiki", `${slug}.json`);
   if (!existsSync(filePath)) return null;
-  return JSON.parse(await readFile(filePath, "utf8")) as WikiPage;
+  try {
+    return JSON.parse(await readFile(filePath, "utf8")) as WikiPage;
+  } catch {
+    return null;
+  }
 }
 
 export async function listWikiPages() {
