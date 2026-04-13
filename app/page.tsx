@@ -1,4 +1,9 @@
-export default function HomePage() {
+import { listWikiPages } from "@/lib/storage/fs-store";
+import { WikiList } from "@/components/wiki-list";
+
+export default async function HomePage() {
+  const pages = await listWikiPages();
+
   return (
     <main className="mx-auto flex min-h-screen max-w-5xl flex-col gap-6 px-6 py-10">
       <section className="space-y-3">
@@ -13,6 +18,7 @@ export default function HomePage() {
           and wiki-grounded chat for faster review before exams and assignments.
         </p>
       </section>
+      <WikiList pages={pages} />
     </main>
   );
 }

@@ -3,6 +3,7 @@ import { extractText } from "@/lib/ingest/extract-text";
 import { normalizeSource } from "@/lib/ingest/normalize-source";
 import { saveWikiPages } from "@/lib/storage/fs-store";
 import { generateWikiPages } from "@/lib/wiki/generate-pages";
+import { linkWikiPages } from "@/lib/wiki/link-pages";
 
 export async function POST(request: Request) {
   const form = await request.formData();
@@ -15,7 +16,7 @@ export async function POST(request: Request) {
       normalizeSource({ fileName: file.name, mimeType: file.type, text: await extractText(file) }),
     ),
   );
-  const pages = generateWikiPages(sources);
+  const pages = linkWikiPages(generateWikiPages(sources));
   await saveWikiPages(pages);
   return NextResponse.json({ pages });
 }
