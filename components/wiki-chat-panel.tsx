@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 
-export function WikiChatPanel() {
+interface WikiChatPanelProps {
+  contextLabel?: string;
+}
+
+export function WikiChatPanel({ contextLabel = "the full wiki" }: Readonly<WikiChatPanelProps>) {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [references, setReferences] = useState<{ slug: string; title: string }[]>([]);
@@ -41,15 +45,18 @@ export function WikiChatPanel() {
   }
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-6">
-      <h2 className="text-lg font-semibold">Wiki AI Chat</h2>
+    <section className="flex min-h-0 flex-col rounded-md border border-slate-200 bg-white p-5">
+      <div className="space-y-2">
+        <h2 className="text-lg font-semibold text-slate-950">Wiki AI Chat</h2>
+        <p className="text-sm leading-6 text-slate-500">Using {contextLabel} as context</p>
+      </div>
       <textarea
         value={question}
         onChange={(event) => setQuestion(event.target.value)}
-        className="mt-4 min-h-28 w-full rounded-2xl border border-slate-300 p-3"
+        className="mt-4 min-h-28 w-full rounded-md border border-slate-300 p-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-slate-400"
         placeholder="Ask from the generated wiki only."
       />
-      <button onClick={submit} className="mt-3 rounded-full bg-slate-900 px-5 py-2 text-sm font-medium text-white">
+      <button onClick={submit} className="mt-3 inline-flex w-fit rounded-full bg-slate-900 px-5 py-2 text-sm font-medium text-white">
         Ask
       </button>
       {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}

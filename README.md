@@ -13,6 +13,23 @@ My Wiki is a Next.js app that turns uploaded source files into generated wiki pa
 
 This MVP does not use a vector database. Page selection is done from the generated wiki pages on disk, then the chat model is prompted with the selected page excerpts.
 
+## Demo Scenario
+
+The fixed demo scenario uses the curated `Computer Architecture - Cache and Memory Hierarchy` study set under `data/demo/cache-memory-hierarchy/`.
+
+Recommended demo flow:
+
+1. Upload lecture notes, slide material, and an assignment summary.
+2. Generate linked wiki pages such as `캐시 메모리`, `지역성`, and `배열 접근 패턴과 성능`.
+3. Open related wiki pages and follow document links.
+4. Ask grounded chat questions such as `캐시 메모리는 왜 필요한가요?`.
+
+## Demo GIF
+
+The README demo GIF should be captured from the fixed scenario above and saved as `public/demo/study-wiki-demo.gif`.
+
+![Study Wiki demo](./public/demo/study-wiki-demo.gif)
+
 ## Local Setup
 
 1. Install dependencies.

@@ -1,0 +1,17 @@
+{
+  "slug": "array-access-patterns-and-performance",
+  "title": "배열 접근 패턴과 성능",
+  "summary": "순차 접근은 spatial locality가 높아 cache block을 효율적으로 활용하지만, 큰 간격으로 건너뛰는 접근은 miss를 늘려 성능 차이를 만든다.",
+  "body": "과제 요약 문서에서는 배열 접근 패턴에 따라 cache miss와 실행 시간이 달라지는 현상을 비교했다.\n\n순차 접근은 인접한 메모리 주소를 연속적으로 읽기 때문에 spatial locality가 높다. 그 결과 cache block에 담긴 nearby data를 다시 활용할 가능성이 높아지고 miss가 줄어든다.\n\n반면 큰 간격으로 건너뛰는 접근은 locality가 낮아, 가져온 block을 충분히 활용하지 못하고 miss가 더 자주 발생한다. 따라서 같은 크기의 배열이어도 접근 방식이 달라지면 전체 성능 차이가 발생할 수 있다.",
+  "keywords": [
+    "array access",
+    "spatial locality",
+    "cache miss",
+    "performance"
+  ],
+  "sourceIds": [
+    "assignment-array-access-cache-analysis",
+    "lecture-notes-cache-memory-hierarchy"
+  ],
+  "links": []
+}

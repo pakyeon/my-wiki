@@ -1,0 +1,21 @@
+{
+  "slug": "cache-memory",
+  "title": "캐시 메모리",
+  "summary": "캐시 메모리는 CPU와 main memory 사이에 위치하며, 자주 사용할 가능성이 높은 데이터를 가까이 두어 평균 접근 시간을 줄인다.",
+  "body": "캐시 메모리(cache memory)는 CPU와 main memory 사이에 위치하는 빠른 저장공간이다.\n\n수업 자료에서는 CPU가 필요한 데이터를 cache에서 먼저 찾고, 있으면 cache hit, 없으면 main memory까지 내려가서 가져오는 흐름으로 설명했다. 캐시는 최근 또는 자주 사용할 가능성이 높은 데이터를 가까운 위치에 두는 전략으로 평균 메모리 접근 시간을 줄인다.\n\n또한 cache는 보통 block 단위로 데이터를 가져온다. 이 점은 nearby data를 함께 활용할 수 있다는 점에서 spatial locality와 연결된다.",
+  "keywords": [
+    "cache memory",
+    "cache hit",
+    "cache miss",
+    "block"
+  ],
+  "sourceIds": [
+    "lecture-notes-cache-memory-hierarchy",
+    "computer-architecture-week4-cache",
+    "assignment-array-access-cache-analysis"
+  ],
+  "links": [
+    "locality",
+    "cache-hit-and-miss"
+  ]
+}

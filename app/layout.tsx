@@ -1,16 +1,9 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { unstable_noStore as noStore } from "next/cache";
+import { WikiShell } from "@/components/wiki-shell";
+import { WikiShellProvider } from "@/components/wiki-shell-context";
+import { listWikiPages } from "@/lib/storage/fs-store";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Study Wiki MVP",
@@ -18,17 +11,21 @@ export const metadata: Metadata = {
     "Turn lecture notes, class PDFs, and assignment summaries into a linked study wiki.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  noStore();
+  const pages = await listWikiPages().catch(() => []);
+
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className="h-full antialiased">
+      <body className="min-h-full bg-[radial-gradient(circle_at_top,_rgba(241,245,249,0.95),_rgba(255,255,255,1)_38%),linear-gradient(180deg,_rgba(248,250,252,0.96),_rgba(255,255,255,1))] text-slate-950">
+        <WikiShellProvider>
+          <WikiShell pages={pages}>{children}</WikiShell>
+        </WikiShellProvider>
+      </body>
     </html>
   );
 }

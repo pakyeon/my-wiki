@@ -3,7 +3,7 @@
 import { type FormEvent, useState } from "react";
 import { reloadWikiPage } from "@/components/upload-form-actions";
 
-export function UploadForm() {
+export function UploadForm({ compact = false }: Readonly<{ compact?: boolean }>) {
   const [status, setStatus] = useState("Idle");
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -47,16 +47,24 @@ export function UploadForm() {
   return (
     <form
       onSubmit={onSubmit}
-      className="rounded-3xl border border-dashed border-slate-300 bg-white p-6"
+      className={[
+        "border border-dashed border-slate-300 bg-white",
+        compact ? "rounded-2xl p-4" : "rounded-3xl p-6",
+      ].join(" ")}
     >
       <input
         name="files"
         type="file"
         multiple
         accept=".txt,.md,.pdf,.docx"
-        className="block w-full text-sm"
+        className="block w-full text-sm text-slate-700"
       />
-      <button className="mt-4 rounded-full bg-slate-900 px-5 py-2 text-sm font-medium text-white">
+      <button
+        className={[
+          "rounded-full bg-slate-900 text-sm font-medium text-white",
+          compact ? "mt-3 px-4 py-2" : "mt-4 px-5 py-2",
+        ].join(" ")}
+      >
         Build Wiki
       </button>
       <p className="mt-3 text-sm text-slate-500">{status}</p>

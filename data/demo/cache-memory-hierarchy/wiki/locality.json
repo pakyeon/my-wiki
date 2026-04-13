@@ -1,0 +1,20 @@
+{
+  "slug": "locality",
+  "title": "지역성",
+  "summary": "지역성(locality)은 프로그램이 최근 사용한 데이터나 인접한 주소를 다시 접근하는 경향을 말하며, 캐시 성능의 핵심 전제다.",
+  "body": "지역성(locality)은 프로그램의 메모리 접근 패턴이 일정한 규칙을 보이는 성질이다.\n\nTemporal locality는 최근 접근한 데이터를 다시 사용할 가능성이 높다는 뜻이고, spatial locality는 인접한 주소를 연속적으로 접근할 가능성이 높다는 뜻이다.\n\n캐시는 이 두 성질을 전제로 설계된다. 특히 spatial locality가 높을수록 block 단위로 가져온 데이터가 여러 번 재사용될 수 있어 성능 이점이 커진다.",
+  "keywords": [
+    "locality",
+    "temporal locality",
+    "spatial locality",
+    "cache"
+  ],
+  "sourceIds": [
+    "lecture-notes-cache-memory-hierarchy",
+    "computer-architecture-week4-cache",
+    "assignment-array-access-cache-analysis"
+  ],
+  "links": [
+    "array-access-patterns-and-performance"
+  ]
+}

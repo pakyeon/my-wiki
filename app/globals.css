@@ -1,26 +1,59 @@
 @import "tailwindcss";
+@import "katex/dist/katex.min.css";
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0f172a;
+  --font-sans-stack:
+    "Inter", "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Segoe UI", sans-serif;
+  --font-mono-stack: "JetBrains Mono", "SFMono-Regular", "SF Mono", "Consolas", monospace;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-sans-stack);
+  --font-mono: var(--font-mono-stack);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--background);
 }
 
 body {
-  background: var(--background);
+  min-height: 100%;
   color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans-stack);
+  text-rendering: optimizeLegibility;
+  background: #fbfbfa;
+}
+
+::selection {
+  background: rgba(15, 23, 42, 0.15);
+  color: var(--foreground);
+}
+
+.wiki-content {
+  color: #334155;
+}
+
+.wiki-content h2,
+.wiki-content h3 {
+  scroll-margin-top: 2rem;
+}
+
+.wiki-content strong {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.wiki-content hr {
+  margin: 2rem 0;
+  border: 0;
+  border-top: 1px solid #e2e8f0;
 }
