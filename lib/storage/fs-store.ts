@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { randomUUID } from "node:crypto";
 import type { WikiPage } from "@/lib/types";
 
 const DATA_DIR = path.resolve(process.cwd(), process.env.STUDY_WIKI_DATA_DIR ?? "./data");
@@ -16,15 +17,21 @@ export async function saveWikiPages(pages: WikiPage[]) {
   }
   await ensureDataDirs();
   const wikiDir = path.join(DATA_DIR, "wiki");
-  const stagingDir = path.join(DATA_DIR, `wiki.tmp-${process.pid}-${Date.now()}`);
-  const backupDir = path.join(DATA_DIR, `wiki.backup-${process.pid}-${Date.now()}`);
+  const opId = randomUUID();
+  const stagingDir = path.join(DATA_DIR, `wiki.tmp-${opId}`);
+  const backupDir = path.join(DATA_DIR, `wiki.backup-${opId}`);
 
   await mkdir(stagingDir, { recursive: true });
-  await Promise.all(
-    pages.map((page) =>
-      writeFile(path.join(stagingDir, `${page.slug}.json`), JSON.stringify(page, null, 2), "utf8"),
-    ),
-  );
+  try {
+    await Promise.all(
+      pages.map((page) =>
+        writeFile(path.join(stagingDir, `${page.slug}.json`), JSON.stringify(page, null, 2), "utf8"),
+      ),
+    );
+  } catch (error) {
+    await rm(stagingDir, { recursive: true, force: true });
+    throw error;
+  }
 
   try {
     if (existsSync(wikiDir)) {
@@ -36,7 +43,14 @@ export async function saveWikiPages(pages: WikiPage[]) {
     }
   } catch (error) {
     if (existsSync(backupDir) && !existsSync(wikiDir)) {
-      await rename(backupDir, wikiDir).catch(() => {});
+      try {
+        await rename(backupDir, wikiDir);
+      } catch (rollbackError) {
+        await rm(stagingDir, { recursive: true, force: true }).catch(() => {});
+        throw new Error("Failed to restore wiki backup after save failure", {
+          cause: rollbackError,
+        });
+      }
     }
     await rm(stagingDir, { recursive: true, force: true }).catch(() => {});
     throw error;
