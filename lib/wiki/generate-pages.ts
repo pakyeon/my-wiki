@@ -34,44 +34,33 @@ function extractKeywordCandidates(text: string) {
   return unique;
 }
 
-function selectSharedKeyword(sources: SourceRecord[]) {
-  const sourceKeywords = sources.map((source) => extractKeywordCandidates(source.text));
-  const shared = sourceKeywords.reduce<Set<string> | null>((acc, keywords) => {
-    const current = new Set(keywords);
-    if (!acc) return current;
-    return new Set([...acc].filter((keyword) => current.has(keyword)));
-  }, null);
-
-  if (shared && shared.size > 0) {
-    return [...shared].sort((a, b) => a.localeCompare(b))[0];
-  }
-
-  const counts = new Map<string, number>();
-  for (const keywords of sourceKeywords) {
-    for (const keyword of keywords) {
-      counts.set(keyword, (counts.get(keyword) ?? 0) + 1);
-    }
-  }
-
-  const best = [...counts.entries()]
-    .filter(([, count]) => count > 1)
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
-
-  return best?.[0] ?? sourceKeywords[0]?.[0] ?? "study-topic";
+function selectTopicKeyword(keywords: string[], keywordCounts: Map<string, number>) {
+  return (
+    keywords
+      .filter((keyword) => (keywordCounts.get(keyword) ?? 0) > 1)
+      .sort((a, b) => (keywordCounts.get(a) ?? 0) - (keywordCounts.get(b) ?? 0) || a.localeCompare(b))[0] ??
+    keywords[0] ??
+    "study-topic"
+  );
 }
 
 export function generateWikiPages(sources: SourceRecord[]): WikiPage[] {
   if (sources.length === 0) return [];
 
   const groups = new Map<string, SourceRecord[]>();
-  const sharedKeyword = selectSharedKeyword(sources);
+  const keywordCounts = new Map<string, number>();
+  const sourceKeywords = sources.map((source) => extractKeywordCandidates(source.text));
 
-  for (const source of sources) {
-    const sourceKeywords = extractKeywordCandidates(source.text);
-    const key =
-      sourceKeywords.includes(sharedKeyword) || sharedKeyword === "study-topic"
-        ? sharedKeyword
-        : sourceKeywords[0] ?? sharedKeyword;
+  for (const keywords of sourceKeywords) {
+    for (const keyword of keywords) {
+      keywordCounts.set(keyword, (keywordCounts.get(keyword) ?? 0) + 1);
+    }
+  }
+
+  for (let index = 0; index < sources.length; index += 1) {
+    const source = sources[index];
+    const keywords = sourceKeywords[index] ?? [];
+    const key = selectTopicKeyword(keywords, keywordCounts);
     groups.set(key, [...(groups.get(key) ?? []), source]);
   }
 

@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { WikiPage } from "@/lib/types";
 
@@ -12,9 +12,16 @@ export async function ensureDataDirs() {
 
 export async function saveWikiPages(pages: WikiPage[]) {
   await ensureDataDirs();
+  const wikiDir = path.join(DATA_DIR, "wiki");
+  const names = await readdir(wikiDir);
+  await Promise.all(
+    names
+      .filter((name) => name.endsWith(".json"))
+      .map((name) => unlink(path.join(wikiDir, name))),
+  );
   await Promise.all(
     pages.map((page) =>
-      writeFile(path.join(DATA_DIR, "wiki", `${page.slug}.json`), JSON.stringify(page, null, 2), "utf8"),
+      writeFile(path.join(wikiDir, `${page.slug}.json`), JSON.stringify(page, null, 2), "utf8"),
     ),
   );
 }
