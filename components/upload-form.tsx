@@ -1,24 +1,52 @@
 "use client";
 
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
+import { reloadWikiPage } from "@/components/upload-form-actions";
 
 export function UploadForm() {
   const [status, setStatus] = useState("Idle");
 
-  async function onSubmit(formData: FormData) {
-    setStatus("Generating wiki...");
-    const response = await fetch("/api/ingest", { method: "POST", body: formData });
-    if (!response.ok) {
-      setStatus("Failed to generate wiki.");
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const fileInput = event.currentTarget.elements.namedItem("files");
+    const selectedFiles = fileInput instanceof HTMLInputElement ? Array.from(fileInput.files ?? []) : [];
+
+    if (selectedFiles.length === 0) {
+      setStatus("Select at least one file.");
       return;
     }
-    setStatus("Wiki generated.");
-    window.location.reload();
+
+    setStatus("Generating wiki...");
+
+    try {
+      const formData = new FormData();
+      selectedFiles.forEach((file) => {
+        formData.append("files", file);
+      });
+
+      const response = await fetch("/api/ingest", { method: "POST", body: formData });
+      if (!response.ok) {
+        setStatus("Failed to generate wiki.");
+        return;
+      }
+
+      const data = (await response.json()) as { pages?: unknown[] };
+      if (!Array.isArray(data.pages) || data.pages.length === 0) {
+        setStatus("No wiki pages were created.");
+        return;
+      }
+
+      setStatus("Wiki generated.");
+      reloadWikiPage();
+    } catch {
+      setStatus("Failed to generate wiki.");
+    }
   }
 
   return (
     <form
-      action={onSubmit}
+      onSubmit={onSubmit}
       className="rounded-3xl border border-dashed border-slate-300 bg-white p-6"
     >
       <input

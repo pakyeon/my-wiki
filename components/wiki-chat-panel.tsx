@@ -6,16 +6,38 @@ export function WikiChatPanel() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [references, setReferences] = useState<{ slug: string; title: string }[]>([]);
+  const [error, setError] = useState("");
 
   async function submit() {
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question }),
-    });
-    const data = await response.json();
-    setAnswer(data.answer);
-    setReferences(data.references ?? []);
+    const trimmedQuestion = question.trim();
+
+    if (!trimmedQuestion) {
+      setError("Enter a question first.");
+      return;
+    }
+
+    setError("");
+    setAnswer("");
+    setReferences([]);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: trimmedQuestion }),
+      });
+
+      if (!response.ok) {
+        setError("Failed to answer the question.");
+        return;
+      }
+
+      const data = await response.json();
+      setAnswer(data.answer);
+      setReferences(data.references ?? []);
+    } catch {
+      setError("Failed to answer the question.");
+    }
   }
 
   return (
@@ -30,6 +52,7 @@ export function WikiChatPanel() {
       <button onClick={submit} className="mt-3 rounded-full bg-slate-900 px-5 py-2 text-sm font-medium text-white">
         Ask
       </button>
+      {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
       {answer ? <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-slate-700">{answer}</p> : null}
       {references.length > 0 ? (
         <ul className="mt-4 space-y-1 text-xs text-slate-500">
