@@ -15,7 +15,7 @@ export default async function HomePage() {
         </h1>
         <p className="max-w-2xl text-base leading-7 text-slate-600">
           Reorganize scattered study records into topic pages, connected concepts,
-          and wiki-grounded chat for faster review before exams and assignments.
+          and browsable wiki links for faster review before exams and assignments.
         </p>
       </section>
       <WikiList pages={pages} />
