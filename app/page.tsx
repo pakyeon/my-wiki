@@ -6,11 +6,11 @@ export default function HomePage() {
           Study Wiki MVP
         </p>
         <h1 className="text-4xl font-semibold tracking-tight text-slate-900">
-          Turn scattered study materials into a linked learning wiki.
+          Turn lecture notes, class PDFs, and assignment summaries into a linked study wiki.
         </h1>
         <p className="max-w-2xl text-base leading-7 text-slate-600">
-          Upload lecture notes, class PDFs, and assignment summaries to build
-          topic pages and grounded wiki chat.
+          Reorganize scattered study records into topic pages, connected concepts,
+          and wiki-grounded chat for faster review before exams and assignments.
         </p>
       </section>
     </main>
