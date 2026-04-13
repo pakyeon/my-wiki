@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# My Wiki
 
-## Getting Started
+My Wiki is a Next.js app that turns uploaded source files into generated wiki pages and answers chat questions only from those pages.
 
-First, run the development server:
+## Project Overview
+
+- Upload documents into the app.
+- Generate wiki pages from the uploaded content.
+- Ask the chat assistant questions about the generated wiki pages.
+- Keep responses grounded in the wiki content only.
+
+This MVP does not use a vector database. Page selection is done from the generated wiki pages on disk, then the chat model is prompted with the selected page excerpts.
+
+## Local Setup
+
+1. Install dependencies.
+
+```bash
+npm install
+```
+
+2. Create a local environment file in `my-wiki/.env.local`.
+
+3. Start the development server.
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Local GGUF Chat Server
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The chat backend expects an OpenAI-compatible endpoint. A local `llama.cpp` server works well for this MVP.
 
-## Learn More
+Example server command:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+./llama-server \
+  -m /models/gemma-4-E4B-it-Q4_K_M.gguf \
+  --host 127.0.0.1 \
+  --port 8080
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Use the OpenAI-compatible base URL in `.env.local`:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+CHAT_MODEL_BASE_URL=http://127.0.0.1:8080/v1
+CHAT_MODEL_API_KEY=local
+CHAT_MODEL_NAME=gemma-4-e4-b-it-q4
+```
 
-## Deploy on Vercel
+## Environment Variables
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Set these values in `my-wiki/.env.local`:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `CHAT_MODEL_BASE_URL`: OpenAI-compatible chat completion endpoint, such as `http://127.0.0.1:8080/v1`.
+- `CHAT_MODEL_API_KEY`: Any placeholder string accepted by your local server. `local` is fine for `llama.cpp`.
+- `CHAT_MODEL_NAME`: The model name sent to the endpoint. Use the name expected by your server or a local alias such as `gemma-4-e4-b-it-q4`.
+
+## Product Guardrails
+
+- Chat answers only from generated wiki pages.
+- No vector database is used in this MVP.
+- If no relevant wiki page exists, the chat refuses to guess.
+
+These guardrails are enforced in the chat route and prompt:
+
+- The route ranks generated wiki pages from local storage before calling the model.
+- If nothing relevant is found, the API returns a refusal instead of asking the model to invent an answer.
+- The prompt tells the model to answer only from the provided wiki excerpts and to say when the wiki does not contain the answer.
+
+## Verification Commands
+
+Run the full local verification pass from `my-wiki/`:
+
+```bash
+npx vitest run
+npm run lint
+npm run build
+```
+
+If `npm run build` emits the known Turbopack tracing warning, treat it as expected for this task unless it blocks the build.
