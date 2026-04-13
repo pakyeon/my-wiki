@@ -14,4 +14,22 @@ describe("normalizeSource", () => {
     expect(source.title).toBe("lecture1-notes");
     expect(source.text).toContain("Caches reduce latency.");
   });
+
+  it("keeps the same id for equivalent trimmed text", () => {
+    const first = normalizeSource({
+      fileName: "lecture1-notes.md",
+      mimeType: "text/markdown",
+      text: "  Caches reduce latency.  ",
+    });
+
+    const second = normalizeSource({
+      fileName: "lecture1-notes.md",
+      mimeType: "text/markdown",
+      text: "Caches reduce latency.",
+    });
+
+    expect(first.text).toBe("Caches reduce latency.");
+    expect(second.text).toBe("Caches reduce latency.");
+    expect(first.id).toBe(second.id);
+  });
 });

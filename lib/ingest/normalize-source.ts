@@ -9,14 +9,15 @@ export function normalizeSource(input: {
   text: string;
 }): SourceRecord {
   const baseName = input.fileName.replace(/\.[^.]+$/, "");
+  const text = input.text.trim();
 
   return {
-    id: createHash("sha1").update(`${input.fileName}:${input.text}`).digest("hex").slice(0, 12),
+    id: createHash("sha1").update(`${input.fileName}:${text}`).digest("hex").slice(0, 12),
     slug: slugify(baseName, { lower: true, strict: true }),
     title: baseName,
     fileName: input.fileName,
     mimeType: input.mimeType,
     kind: detectSourceKind(input.fileName, input.mimeType),
-    text: input.text.trim(),
+    text,
   };
 }

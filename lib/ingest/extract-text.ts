@@ -7,7 +7,7 @@ export function detectSourceKind(fileName: string, mimeType: string) {
   const lowerName = fileName.toLowerCase();
 
   if (mimeType === "application/pdf" || ext === ".pdf") return "pdf" as const;
-  if (lowerName.includes("assignment") || lowerName.includes("summary") || ext === ".docx") {
+  if (lowerName.includes("assignment") || lowerName.includes("summary")) {
     return "assignment" as const;
   }
   return "note" as const;
