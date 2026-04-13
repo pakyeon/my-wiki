@@ -13,16 +13,17 @@ export async function ensureDataDirs() {
 export async function saveWikiPages(pages: WikiPage[]) {
   await ensureDataDirs();
   const wikiDir = path.join(DATA_DIR, "wiki");
-  const names = await readdir(wikiDir);
-  await Promise.all(
-    names
-      .filter((name) => name.endsWith(".json"))
-      .map((name) => unlink(path.join(wikiDir, name))),
-  );
   await Promise.all(
     pages.map((page) =>
       writeFile(path.join(wikiDir, `${page.slug}.json`), JSON.stringify(page, null, 2), "utf8"),
     ),
+  );
+  const keepNames = new Set(pages.map((page) => `${page.slug}.json`));
+  const names = await readdir(wikiDir);
+  await Promise.all(
+    names
+      .filter((name) => name.endsWith(".json") && !keepNames.has(name))
+      .map((name) => unlink(path.join(wikiDir, name))),
   );
 }
 

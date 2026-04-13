@@ -37,4 +37,39 @@ describe("saveWikiPages", () => {
     await expect(readFile(path.join(dataDir, "uploads", "keep.txt"), "utf8")).resolves.toBe("keep");
     expect(existsSync(path.join(dataDir, "wiki", "stale.json"))).toBe(false);
   });
+
+  it("keeps stale wiki files if a later page write fails", async () => {
+    const dataDir = await mkdtemp(path.join(os.tmpdir(), "llm-wiki-"));
+    await mkdir(path.join(dataDir, "wiki"), { recursive: true });
+    await writeFile(path.join(dataDir, "wiki", "stale.json"), JSON.stringify({ stale: true }), "utf8");
+
+    vi.stubEnv("STUDY_WIKI_DATA_DIR", dataDir);
+    const { saveWikiPages } = await import("@/lib/storage/fs-store");
+
+    await expect(
+      saveWikiPages([
+        {
+          slug: "fresh-page",
+          title: "Fresh Page",
+          summary: "Fresh summary",
+          body: "Fresh body",
+          keywords: ["fresh"],
+          sourceIds: ["source-1"],
+          links: [],
+        },
+        {
+          slug: "nested/fail",
+          title: "Broken Page",
+          summary: "Broken summary",
+          body: "Broken body",
+          keywords: ["broken"],
+          sourceIds: ["source-2"],
+          links: [],
+        },
+      ]),
+    ).rejects.toThrow();
+
+    expect(existsSync(path.join(dataDir, "wiki", "stale.json"))).toBe(true);
+    await expect(readFile(path.join(dataDir, "wiki", "fresh-page.json"), "utf8")).resolves.toContain("Fresh Page");
+  });
 });
